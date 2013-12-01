@@ -1,4 +1,6 @@
+require "metahash/lazy_hash"
 require "metahash/metadata"
+require "metahash/metadata_with_indifferent_access"
 require "metahash/version"
 
 module MetaHash
@@ -8,7 +10,7 @@ module MetaHash
 	# the hash by creating class Metadata < Hash; end
 	#
 	# @param [Symbol] serialized_field name of the field to convert to Metadata
-	def metadata_field_for(serialized_field)
+	def metadata_field_for(serialized_field, indifferent_access: false)
 		after_initialize do |record|
 			# first check the type of the field
 			# proceed if hash, abort if Metadata
@@ -21,7 +23,7 @@ module MetaHash
 					# name the metadata accessor the same as the original field
 					# rails should automatically serialize this on save
 					initial_value = record.send(backup_name) || {}
-					record.send("#{serialized_field}=", Metadata.new(initial_value))
+					record.send("#{serialized_field}=", Metadata.new(initial_value, indifferent_access))
 				end
 			end
 		end
@@ -43,5 +45,5 @@ module MetaHash
 end
 
 if defined?(ActiveRecord::Base)
-	ActiveRecord::Base.send :extend, MetaHash
+	ActiveRecord::Base.send(:extend, MetaHash)
 end
